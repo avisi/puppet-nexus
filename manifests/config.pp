@@ -34,18 +34,19 @@ class nexus::config(
     # {karaf.data}/etc/nexus.properties where {karaf.data} is the work dir
     $conf_path = 'etc/nexus.properties'
     $nexus_properties_file = "${nexus_work_dir}/${conf_path}"
-    file { "${nexus_work_dir}/etc":
-      ensure => directory,
-      owner  => $::nexus::nexus_user,
-      group  => $::nexus::nexus_group,
-    }
+    # https://books.sonatype.com/nexus-book/3.1/reference/install.html#config-context-path
+    $context_path_setting = 'nexus-context-path'
   }
   elsif versioncmp($version, '3.0.0') >= 0 {
     $conf_path = 'etc/org.sonatype.nexus.cfg'
     $nexus_properties_file = "${nexus_root}/${nexus_home_dir}/${conf_path}"
+    # https://books.sonatype.com/nexus-book/3.0/reference/install.html#config-context-path
+    $context_path_setting = 'nexus-context-path'
   } else {
     $conf_path = 'conf/nexus.properties'
     $nexus_properties_file = "${nexus_root}/${nexus_home_dir}/${conf_path}"
+    # https://books.sonatype.com/nexus-book/reference/install-sect-proxy.html#nexus_webapp_context_path
+    $context_path_setting = 'nexus-webapp-context-path'
   }
   $nexus_data_dir = "${nexus_root}/${nexus_home_dir}/data"
 
@@ -67,10 +68,10 @@ class nexus::config(
     line  => "application-port=${nexus_port}",
   }
 
-  file_line{ 'nexus-webapp-context-path':
+  file_line{ $context_path_setting:
     path  => $nexus_properties_file,
-    match => '^nexus-webapp-context-path',
-    line  => "nexus-webapp-context-path=${nexus_context}",
+    match => "^${context_path_setting}",
+    line  => "${context_path_setting}=${nexus_context}",
   }
 
   file_line{ 'nexus-work':
